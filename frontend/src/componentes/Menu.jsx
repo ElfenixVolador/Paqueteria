@@ -4,6 +4,8 @@ import { TbTruckDelivery } from "react-icons/tb";
 import { FaBox } from "react-icons/fa";
 import { FaUserCircle } from "react-icons/fa";
 import { BiSolidReport } from "react-icons/bi";
+import { FaHome } from "react-icons/fa";
+import { CiLogout } from "react-icons/ci";
 
 
 export const Menu = () => {
@@ -19,7 +21,7 @@ export const Menu = () => {
 
     const menuItems = [
         {
-            icons: '',
+            icons: <FaHome size={26.5}/>,
             label: "Home"
         },
         {
@@ -38,12 +40,9 @@ export const Menu = () => {
             icons: <TbTruckDelivery size={23.5}/>,
             label: "Provedores"
         },
+ 
         {
-            icons: '',
-            label: "Configuracion"
-        },
-        {
-            icons: '',
+            icons: <CiLogout size={26.5}/>,
             label: "Cerrar Sesion"
         },
     ]

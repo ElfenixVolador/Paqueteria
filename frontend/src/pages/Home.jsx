@@ -30,6 +30,7 @@ const Home = () => {
       <div>
         <Menu />
         <div>
+         
         </div>
       </div>
     </div>
