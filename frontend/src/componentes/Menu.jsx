@@ -1,75 +1,59 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { CiBoxList } from "react-icons/ci";
-import { TbTruckDelivery } from "react-icons/tb";
-import { FaBox } from "react-icons/fa";
-import { FaUserCircle } from "react-icons/fa";
-import { BiSolidReport } from "react-icons/bi";
-import { FaHome } from "react-icons/fa";
-import { CiLogout } from "react-icons/ci";
+// Menu.jsx actualizado para usar <Link> de react-router-dom
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { FaChartPie, FaHome, FaBox, FaTruck, FaBell, FaUserCircle } from 'react-icons/fa';
+import { BiSolidReport } from 'react-icons/bi';
+import { CiLogout, CiBoxList } from 'react-icons/ci';
 
-export const Menu = () => {
+const Menu = () => {
   const [open, setOpen] = useState(false);
-  const hidenMenu = () => setOpen(!open);
 
-  // Puedes agregar la propiedad "ruta" para cada item si es necesario
+  const toggle = () => setOpen(!open);
+
   const menuItems = [
-    {
-      icons: <FaHome size={24.5} />,
-      label: "Home",
-      ruta: "/"  // ruta a la home
-    },
-    {
-      icons: <FaBox size={20} />,
-      label: "Registro paquete",
-      ruta: "/registropaq"  // ruta al CRUD de paquetes
-    },
-    {
-      icons: <FaUserCircle />,
-      label: "Usuarios",
-      ruta: "/usuarios" // por ejemplo
-    },
-    {
-      icons: <BiSolidReport size={23.9} />,
-      label: "Reporte",
-      ruta: "/reporte" // por ejemplo
-    },
-    {
-      icons: <TbTruckDelivery size={23.5} />,
-      label: "Provedores",
-      ruta: "/provedores" // por ejemplo
-    },
-    {
-      icons: <CiLogout size={26.5} />,
-      label: "Cerrar Sesion",
-      ruta: "/logout" // por ejemplo
-    },
+    { icon: <FaChartPie size={22} />, label: 'Dashboard', ruta: '/dashboard' },
+    { icon: <FaHome size={22} />, label: 'Home', ruta: '/home' },
+    { icon: <FaBox size={22} />, label: 'Registro paquete', ruta: '/registropaq' },
+    { icon: <FaTruck size={22} />, label: 'Seguimiento', ruta: '/seguimiento' },
+    { icon: <FaBell size={22} />, label: 'Notificaciones', ruta: '/notificaciones' },
+    { icon: <FaUserCircle size={22} />, label: 'Usuarios', ruta: '/usuarios' },
+    { icon: <BiSolidReport size={22} />, label: 'Reporte', ruta: '/reporte' },
   ];
 
   return (
-    <div>
-      <nav className={`shadow-md h-screen bg-blue-900 text-white transition-all duration-300 ${open ? "w-64" : "w-10"}`}>
-        <button className="w-64" onClick={hidenMenu}>
-          <CiBoxList size={30} className="cursor-pointer m-1" />
-        </button>
-        <div>
-          <img src="/logomediano.png" className={`${open ? 'w-50' : 'w-0'}`} alt="Logo" />
-        </div>
+    <nav className={`shadow-md h-screen bg-blue-900 text-white transition-all duration-300 ${open ? 'w-64' : 'w-10'}`}>
+      <button className="w-full p-2" onClick={toggle}>
+        <CiBoxList size={30} />
+      </button>
 
-        <ul className="flex-1">
-          {menuItems.map((item, index) => (
-            <li key={index} className="my-2 px3 py-2 hover:bg-blue-100 rounded-md duration-300 cursor-pointer flex gap-2 items-center group">
-              {/* Envolvemos el contenido con Link para redireccionar */}
-              <Link to={item.ruta} className="flex items-center gap-2 w-full">
-                <p className="ml-2">{item.icons}</p>
-                <p className={`${!open && "w-0 translate-x-24"} duration-500 overflow-hidden`}>
-                  {item.label}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </div>
+      <div className="flex justify-center my-4">
+        <Link to="/dashboard">
+          <img
+            src="/logomediano.png"
+            alt="Logo"
+            className={`transition-all duration-300 ${open ? 'w-48 opacity-100' : 'w-0 opacity-0'}`}
+          />
+        </Link>
+      </div>
+
+      <ul className="space-y-1">
+        {menuItems.map((item, index) => (
+          <li key={index} className="px-3 py-2 hover:bg-blue-700 rounded-md">
+            <Link to={item.ruta} className="flex items-center gap-2">
+              {item.icon}
+              <span className={`${!open && 'hidden'} transition-all duration-300`}>{item.label}</span>
+            </Link>
+          </li>
+        ))}
+        <li className="px-3 py-2 hover:bg-blue-700 rounded-md">
+          <Link to="/login" onClick={() => localStorage.removeItem('token')} className="flex items-center gap-2">
+            <CiLogout size={22} />
+            <span className={`${!open && 'hidden'} transition-all duration-300`}>Cerrar Sesión</span>
+          </Link>
+        </li>
+      </ul>
+    </nav>
   );
 };
+
+export default Menu;
