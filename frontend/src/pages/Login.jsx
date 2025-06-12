@@ -13,11 +13,16 @@ const Login = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
+
     try {
       const res = await api.post('/api/auth/login', values);
-      const { token, role } = res.data;
+
+      const { token, usuario } = res.data;
+
+      // Guardar token y usuario completo (con rol)
       localStorage.setItem('token', token);
-      localStorage.setItem('role', role);
+      localStorage.setItem('usuario', JSON.stringify(usuario));
+
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Error al iniciar sesión');
@@ -32,7 +37,9 @@ const Login = () => {
           <div className="mb-4">
             <label htmlFor="email" className="block text-gray-700">Email</label>
             <input
-              id="email" name="email" type="email"
+              id="email"
+              name="email"
+              type="email"
               className="w-full px-3 py-2 border"
               value={values.email}
               onChange={handleChanges}
@@ -42,7 +49,9 @@ const Login = () => {
           <div className="mb-4">
             <label htmlFor="password" className="block text-gray-700">Password</label>
             <input
-              id="password" name="password" type="password"
+              id="password"
+              name="password"
+              type="password"
               className="w-full px-3 py-2 border"
               value={values.password}
               onChange={handleChanges}

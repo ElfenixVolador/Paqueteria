@@ -2,7 +2,7 @@
 import React from 'react';
 
 const Home = () => {
-  return null; // o <></> si quieres dejarlo más explícito
+  return null; 
 };
 
 export default Home;

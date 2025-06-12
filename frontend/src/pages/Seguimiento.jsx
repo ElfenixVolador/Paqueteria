@@ -1,111 +1,176 @@
-import React, { useState, useEffect } from 'react';
-import { FaFilter } from 'react-icons/fa';
-import { getAllSeguimientos, getResumenEstados } from '../services/seguimientoService';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import Protegido from '../componentes/Protegido';
 
 const Seguimiento = () => {
-  const [filtroGuia, setFiltroGuia] = useState('');
-  const [paginaActual, setPaginaActual] = useState(1);
   const [paquetes, setPaquetes] = useState([]);
-  const [resumenEstados, setResumenEstados] = useState([]);
+  const [filtro, setFiltro] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [paqueteActual, setPaqueteActual] = useState(null);
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState('recibido');
+  const usuarioId = JSON.parse(localStorage.getItem('usuario'))?.id;
 
-  const resultadosPorPagina = 5;
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const resPaquetes = await getAllSeguimientos();
-        setPaquetes(resPaquetes.data);
-
-        const resResumen = await getResumenEstados();
-        setResumenEstados(resResumen.data);
-      } catch (err) {
-        console.error('Error al cargar datos:', err);
-      }
-    }
-    fetchData();
-  }, []);
-
-  const paquetesFiltrados = paquetes.filter(p => p.numero_guia.includes(filtroGuia));
-  const totalPaginas = Math.ceil(paquetesFiltrados.length / resultadosPorPagina);
-  const paquetesPagina = paquetesFiltrados.slice(
-    (paginaActual - 1) * resultadosPorPagina,
-    paginaActual * resultadosPorPagina
-  );
-
-  const obtenerClaseEstado = (estado) => {
-    switch ((estado || '').toLowerCase()) {
-      case 'registrado': return 'bg-gray-200 text-gray-800';
-      case 'pendiente': return 'bg-red-200 text-red-800';
-      case 'en tránsito': return 'bg-blue-200 text-blue-800';
-      case 'entregado': return 'bg-green-200 text-green-800';
-      case 'recibido': return 'bg-yellow-200 text-yellow-800';
-      default: return 'bg-gray-200 text-gray-800';
+  const fetchPaquetes = async () => {
+    try {
+      const { data } = await axios.get('http://localhost:3000/api/paquetes/registropaq', {
+        withCredentials: true,
+      });
+      setPaquetes(data);
+    } catch (err) {
+      console.error('Error al cargar datos:', err);
     }
   };
 
+  useEffect(() => {
+    fetchPaquetes();
+  }, []);
+
+  const abrirModal = (paquete) => {
+    setPaqueteActual(paquete);
+    setEstadoSeleccionado('recibido');
+    setModalOpen(true);
+  };
+
+  const cerrarModal = () => {
+    setModalOpen(false);
+    setPaqueteActual(null);
+  };
+
+  const confirmarCambioEstado = async () => {
+    try {
+      await axios.post('http://localhost:3000/api/seguimiento', {
+        id_paquete: paqueteActual.id_paquete,
+        accion: estadoSeleccionado,
+        observaciones: `Estado cambiado manualmente a ${estadoSeleccionado}`,
+        usuario_id: usuarioId
+      }, {
+        withCredentials: true
+      });
+
+      cerrarModal();
+      fetchPaquetes();
+    } catch (err) {
+      console.error('Error al cambiar estado:', err);
+    }
+  };
+
+  const paquetesFiltrados = paquetes.filter(p =>
+    p.numero_guia?.toLowerCase().includes(filtro.toLowerCase())
+  );
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold text-blue-900 mb-6">Seguimiento de Paquetes</h1>
+    <Protegido modulo="paquetes" accion="ver">
+      <div className="p-6">
+        <h2 className="text-2xl font-bold mb-4">Seguimiento de Paquetes</h2>
 
-      <div className="flex flex-wrap items-center gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Buscar por # guía"
-          value={filtroGuia}
-          onChange={e => setFiltroGuia(e.target.value)}
-          className="border border-gray-300 rounded-md px-4 py-2 w-64"
-        />
-        <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md">
-          <FaFilter /> Aplicar Filtros
-        </button>
-      </div>
-
-      <table className="w-full text-sm border mb-6">
-        <thead className="bg-gray-100 text-gray-700">
-          <tr>
-            <th className="border px-3 py-2"># GUÍA</th>
-            <th className="border px-3 py-2">REMITENTE</th>
-            <th className="border px-3 py-2">DESTINATARIO</th>
-            <th className="border px-3 py-2">EMPRESA</th>
-            <th className="border px-3 py-2">FECHA</th>
-            <th className="border px-3 py-2">ESTADO</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paquetesPagina.map((p, i) => (
-            <tr key={i} className="hover:bg-gray-50">
-              <td className="border px-3 py-2 font-semibold text-blue-600">{p.numero_guia}</td>
-              <td className="border px-3 py-2">{p.remitente}</td>
-              <td className="border px-3 py-2">{p.destinatario}</td>
-              <td className="border px-3 py-2">{p.empresa_paqueteria}</td>
-              <td className="border px-3 py-2">{new Date(p.create_time).toLocaleDateString()}</td>
-              <td className="border px-3 py-2">
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${obtenerClaseEstado(p.estado)}`}>
-                  {p.estado || 'Pendiente'}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <div className="flex justify-between items-center mb-8">
-        <span className="text-sm text-gray-600">
-          Mostrando {((paginaActual - 1) * resultadosPorPagina) + 1} a {paginaActual * resultadosPorPagina} de {paquetesFiltrados.length} resultados
-        </span>
-        <div className="flex items-center gap-2">
-          <button disabled={paginaActual === 1} onClick={() => setPaginaActual(p => p - 1)} className="px-2 py-1 border rounded">Anterior</button>
-          {[...Array(totalPaginas).keys()].map(n => (
-            <button
-              key={n}
-              onClick={() => setPaginaActual(n + 1)}
-              className={`px-2 py-1 border rounded ${paginaActual === n + 1 ? 'bg-blue-600 text-white' : ''}`}
-            >{n + 1}</button>
-          ))}
-          <button disabled={paginaActual === totalPaginas} onClick={() => setPaginaActual(p => p + 1)} className="px-2 py-1 border rounded">Siguiente</button>
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            placeholder="Buscar por # guía"
+            value={filtro}
+            onChange={e => setFiltro(e.target.value)}
+            className="border rounded px-3 py-1 w-64"
+          />
+          <button
+            className="bg-blue-600 text-white px-4 py-1 rounded"
+            onClick={fetchPaquetes}
+          >
+            Aplicar Filtros
+          </button>
         </div>
+
+        <table className="w-full border text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2 border"># GUÍA</th>
+              <th className="p-2 border">REMITENTE</th>
+              <th className="p-2 border">DESTINATARIO</th>
+              <th className="p-2 border">EMPRESA</th>
+              <th className="p-2 border">FECHA</th>
+              <th className="p-2 border">ESTADO</th>
+              <th className="p-2 border">ACCIÓN</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paquetesFiltrados.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="text-center p-4 text-gray-500">No hay resultados</td>
+              </tr>
+            ) : (
+              paquetesFiltrados.map((p, i) => (
+                <tr key={i} className="border-t text-center">
+                  <td className="p-2 border text-blue-600 font-semibold">{p.numero_guia}</td>
+                  <td className="p-2 border">{p.remitente}</td>
+                  <td className="p-2 border">{p.destinatario}</td>
+                  <td className="p-2 border">{p.empresa_paqueteria}</td>
+                  <td className="p-2 border">{new Date(p.fecha_recepcion).toLocaleDateString()}</td>
+                  <td className="p-2 border">
+                    {(() => {
+                      const estado = p.estado?.toLowerCase();
+                      const color = estado === 'pendiente'
+                        ? 'bg-gray-200 text-gray-700'
+                        : estado === 'recibido'
+                        ? 'bg-emerald-600 text-white'
+                        : estado === 'entregado'
+                        ? 'bg-emerald-700 text-white'
+                        : 'bg-gray-100 text-black';
+                      const label = ['pendiente', 'recibido', 'entregado'].includes(estado)
+                        ? estado.charAt(0).toUpperCase() + estado.slice(1)
+                        : '—';
+
+                      return (
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${color}`}>
+                          {label}
+                        </span>
+                      );
+                    })()}
+                  </td>
+                  <td className="p-2 border">
+                    <button
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 text-xs rounded"
+                      onClick={() => abrirModal(p)}
+                    >
+                      Cambiar Estado
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        {modalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded shadow-md w-80 space-y-4">
+              <h3 className="text-lg font-bold">Cambiar Estado</h3>
+              <p>Guía: <strong>{paqueteActual?.numero_guia}</strong></p>
+              <select
+                className="w-full border rounded px-2 py-1"
+                value={estadoSeleccionado}
+                onChange={e => setEstadoSeleccionado(e.target.value)}
+              >
+                <option value="recibido">Recibido</option>
+                <option value="entregado">Entregado</option>
+              </select>
+              <div className="flex justify-end gap-2">
+                <button
+                  className="px-4 py-1 text-sm rounded bg-gray-200 hover:bg-gray-300"
+                  onClick={cerrarModal}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="px-4 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={confirmarCambioEstado}
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </Protegido>
   );
 };
 

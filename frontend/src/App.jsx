@@ -9,9 +9,13 @@ import Seguimiento from './pages/Seguimiento';
 import Notificaciones from './pages/Notificaciones';
 import Usuarios from './pages/Usuarios';
 import Reporte from './pages/Reporte';
-import RequireAuth from './componentes/RequireAuth';
-import LayoutPrivado from './componentes/LayoutPrivado';
 import Home from './pages/Home';
+
+import RequireAuth from './componentes/RequireAuth';
+import RequireAdmin from './componentes/RequireAdmin'; // ✅ NUEVO
+import LayoutPrivado from './componentes/LayoutPrivado';
+
+import Roles from './pages/Roles'; // ✅ NUEVO
 
 function App() {
   return (
@@ -20,11 +24,9 @@ function App() {
         {/* Rutas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/* Redirección raíz directa al login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Rutas protegidas con layout privado */}
+        {/* Rutas protegidas */}
         <Route element={<RequireAuth />}>
           <Route element={<LayoutPrivado />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -34,10 +36,20 @@ function App() {
             <Route path="/notificaciones" element={<Notificaciones />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/reporte" element={<Reporte />} />
+
+            {/*Ruta exclusiva para admin */}
+            <Route
+              path="/roles"
+              element={
+                <RequireAdmin>
+                  <Roles />
+                </RequireAdmin>
+              }
+            />
           </Route>
         </Route>
 
-        {/* Ruta inválida → login */}
+        {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

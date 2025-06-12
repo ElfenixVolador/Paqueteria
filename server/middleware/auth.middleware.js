@@ -8,13 +8,14 @@ export function verifyToken(req, res, next) {
     return res.status(403).json({ message: 'No token provided' });
   }
 
-  const token = header.split(' ')[1];
+  const token = header.split(' ')[1]; // ✅ CORREGIDO
+
   try {
     const decoded = jwt.verify(token, config.jwtKey);
-    req.userId   = decoded.id;
-    req.userRole = decoded.role;  // aquí guardamos el rol
+    req.userId = decoded.id;
+    req.userRole = decoded.role; // opcional si usas permit
     next();
   } catch (err) {
-    res.status(401).json({ message: 'Invalid token' });
+    return res.status(401).json({ message: 'Invalid token' });
   }
 }

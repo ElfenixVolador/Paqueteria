@@ -1,9 +1,20 @@
-// server/routes/dashboard.routes.js
 import express from 'express';
-import { getResumen } from '../controllers/dashboard.controller.js'; // nombre exacto del archivo
+import { verifyToken } from '../middleware/auth.middleware.js';
+import { permit } from '../middleware/permit.js';
+
+import {
+  getResumen,
+  getPaquetesPorDia,
+  getActividadReciente,
+  getPaquetesRecientes
+} from '../controllers/dashboard.controller.js';
 
 const router = express.Router();
 
-router.get('/resumen', getResumen);
+// Agregamos todos los endpoints de dashboard
+router.get('/resumen', verifyToken, permit('admin', 'recepcion', 'mensajero', 'usuario_final'), getResumen);
+router.get('/por-dia', verifyToken, permit('admin', 'recepcion', 'mensajero', 'usuario_final'), getPaquetesPorDia);
+router.get('/actividad', verifyToken, permit('admin', 'recepcion', 'mensajero', 'usuario_final'), getActividadReciente);
+router.get('/recientes', verifyToken, permit('admin', 'recepcion', 'mensajero', 'usuario_final'), getPaquetesRecientes);
 
 export default router;

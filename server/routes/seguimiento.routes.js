@@ -3,14 +3,14 @@ import {
   getAllSeguimientos,
   getSeguimientosByPaquete,
   addSeguimiento,
-  getResumenEstados
+  getResumenGrafica
 } from '../controllers/seguimiento.controller.js';
 
 const router = express.Router();
 
-router.get('/', getAllSeguimientos);
-router.get('/:id_paquete', getSeguimientosByPaquete);
-router.post('/', addSeguimiento);
-router.get('/resumen/estado', getResumenEstados);
+router.get('/', getAllSeguimientos); // Lista general
+router.get('/:id_paquete', getSeguimientosByPaquete); // Por paquete
+router.post('/', addSeguimiento); // Agregar seguimiento
+router.get('/grafica/resumen', getResumenGrafica); // Para la gráfica
 
 export default router;
